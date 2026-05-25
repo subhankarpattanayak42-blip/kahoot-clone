@@ -3,12 +3,12 @@ import { getFirestore } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
 
 const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey:            "AIzaSyCdvRAuss9sZqZW-7cKQQ9fFrpecsj6Glw",
+  authDomain:        "kahootclone-110c6.firebaseapp.com",
+  projectId:         "kahootclone-110c6",
+  storageBucket:     "kahootclone-110c6.firebasestorage.app",
+  messagingSenderId: "177467082673",
+  appId:             "1:177467082673:web:7272ab311157f6bf4cdf90",
 }
 
 const app = initializeApp(firebaseConfig)
