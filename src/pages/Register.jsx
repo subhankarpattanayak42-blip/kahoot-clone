@@ -1,17 +1,31 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { db } from '../firebase/config'
 
 export default function Register() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: Send to backend/email list
-    console.log('Waitlist signup:', { name, email })
-    setSubmitted(true)
+    setSaving(true)
+    try {
+      await addDoc(collection(db, 'waitlist'), {
+        name,
+        email,
+        signedUpAt: serverTimestamp(),
+      })
+      setSubmitted(true)
+    } catch (err) {
+      console.error('Failed to save to waitlist:', err)
+      alert('Something went wrong. Please try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -79,9 +93,10 @@ export default function Register() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-yellow-400 text-gray-900 font-bold text-lg py-3 rounded-xl shadow-lg hover:scale-[1.02] hover:bg-yellow-300 transition-all"
+                  disabled={saving}
+                  className="w-full bg-yellow-400 text-gray-900 font-bold text-lg py-3 rounded-xl shadow-lg hover:scale-[1.02] hover:bg-yellow-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Keep Me Updated
+                  {saving ? 'Saving...' : 'Keep Me Updated'}
                 </button>
               </form>
             </div>
