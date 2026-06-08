@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { usePlayers } from '../../hooks/usePlayers'
 import { advanceQuestion } from '../../firebase/helpers'
 import Leaderboard from '../../components/Leaderboard'
@@ -7,6 +8,16 @@ export default function HostLeaderboard({ game, roomCode }) {
   const { players } = usePlayers(roomCode)
   const qi = game.currentQuestionIndex
   const isLast = qi >= game.questions.length - 1
+  const wasNoPoints = game.questions[qi]?.noPoints === true
+
+  // Auto-advance past no-points questions without showing leaderboard
+  useEffect(() => {
+    if (wasNoPoints) {
+      advanceQuestion(roomCode, qi + 1, game.questions.length)
+    }
+  }, [wasNoPoints])
+
+  if (wasNoPoints) return null
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 flex flex-col p-6 gap-4">
