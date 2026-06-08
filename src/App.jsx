@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { GameProvider } from './context/GameContext'
-import Home from './pages/Home'
+import PlayerHome from './pages/PlayerHome'
+import HostHome from './pages/HostHome'
 import CreateQuiz from './pages/host/CreateQuiz'
 import HostGame from './pages/host/HostGame'
 import JoinGame from './pages/player/JoinGame'
@@ -15,7 +16,8 @@ export default function App() {
     <GameProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/"               element={<Home />} />
+          <Route path="/"               element={<PlayerHome />} />
+          <Route path="/host"           element={<HostHome />} />
           <Route path="/host/create"    element={<CreateQuiz />} />
           <Route path="/host/:roomCode" element={<HostGame />} />
           <Route path="/play"           element={<JoinGame />} />
