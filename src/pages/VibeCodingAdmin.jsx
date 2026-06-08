@@ -15,6 +15,7 @@ const PAID_EMAILS_SEED = new Set([
   'amritkumar91@gmail.com',
   'kaushik.padhy86@gmail.com',
   'anuj.sharma@coltie.com',
+  'amohanty1608@gmail.com',
 ])
 
 async function fetchCollection(collectionName, status) {
