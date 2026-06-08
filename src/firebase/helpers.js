@@ -1,6 +1,6 @@
 import {
-  doc, getDoc, setDoc, updateDoc, collection,
-  serverTimestamp, Timestamp
+  doc, getDoc, setDoc, updateDoc, deleteDoc, collection,
+  getDocs, serverTimestamp, Timestamp
 } from 'firebase/firestore'
 import { db } from './config'
 
@@ -100,4 +100,23 @@ export async function submitAnswer(roomCode, playerId, questionId, selectedIndex
   })
 
   return { isCorrect, pointsEarned }
+}
+
+export async function saveQuiz(uid, name, questions) {
+  const id = `quiz_${Date.now()}`
+  await setDoc(doc(db, 'savedQuizzes', uid, 'quizzes', id), {
+    id, name, questions, savedAt: serverTimestamp(),
+  })
+  return id
+}
+
+export async function loadSavedQuizzes(uid) {
+  const snap = await getDocs(collection(db, 'savedQuizzes', uid, 'quizzes'))
+  return snap.docs
+    .map(d => d.data())
+    .sort((a, b) => (b.savedAt?.seconds ?? 0) - (a.savedAt?.seconds ?? 0))
+}
+
+export async function deleteSavedQuiz(uid, quizId) {
+  await deleteDoc(doc(db, 'savedQuizzes', uid, 'quizzes', quizId))
 }

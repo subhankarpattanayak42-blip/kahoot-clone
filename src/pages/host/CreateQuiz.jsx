@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import * as XLSX from 'xlsx'
 import { v4 as uuidv4 } from 'uuid'
 import { useGameContext } from '../../context/GameContext'
-import { createGame } from '../../firebase/helpers'
+import { createGame, saveQuiz, loadSavedQuizzes, deleteSavedQuiz } from '../../firebase/helpers'
 import { useAuth } from '../../hooks/useAuth'
 
 const DEFAULT_TIME = 20
@@ -56,6 +56,7 @@ function parseMarkdown(text) {
         options,
         correctIndex: correctIndex >= 0 ? correctIndex : 0,
         timeLimit,
+        noPoints: false,
       })
     }
   }
@@ -72,6 +73,18 @@ export default function CreateQuiz() {
   const [uploadMsg, setUploadMsg] = useState('')
   const [dragging, setDragging] = useState(false)
   const fileInputRef = useRef()
+
+  // Saved quizzes state
+  const [savedQuizzes, setSavedQuizzes] = useState([])
+  const [quizName, setQuizName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState('')
+  const [showSaved, setShowSaved] = useState(false)
+
+  useEffect(() => {
+    if (!uid) return
+    loadSavedQuizzes(uid).then(setSavedQuizzes).catch(() => {})
+  }, [uid])
 
   function updateQuestion(qi, field, value) {
     setQuestions(qs => qs.map((q, i) => i === qi ? { ...q, [field]: value } : q))
@@ -127,6 +140,40 @@ export default function CreateQuiz() {
     await handleFile(e.dataTransfer.files[0])
   }
 
+  async function handleSaveQuiz() {
+    const name = quizName.trim() || `Quiz ${new Date().toLocaleDateString()}`
+    const valid = questions.filter(q => q.text.trim() && q.options.every(o => o.trim()))
+    if (valid.length === 0) { setError('Add at least one complete question before saving.'); return }
+    setSaving(true)
+    setSaveMsg('')
+    try {
+      await saveQuiz(uid, name, valid)
+      const updated = await loadSavedQuizzes(uid)
+      setSavedQuizzes(updated)
+      setSaveMsg(`Saved "${name}"`)
+      setQuizName('')
+      setTimeout(() => setSaveMsg(''), 3000)
+    } catch (e) {
+      setError('Save failed: ' + e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function handleLoadQuiz(quiz) {
+    setQuestions(quiz.questions.map(q => ({ ...q, id: q.id || uuidv4() })))
+    setUploadMsg(`Loaded "${quiz.name}" (${quiz.questions.length} questions)`)
+    setShowSaved(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function handleDeleteQuiz(quizId, name) {
+    await deleteSavedQuiz(uid, quizId)
+    setSavedQuizzes(qs => qs.filter(q => q.id !== quizId))
+    setSaveMsg(`Deleted "${name}"`)
+    setTimeout(() => setSaveMsg(''), 2000)
+  }
+
   async function handleCreate() {
     setError('')
     for (const q of questions) {
@@ -149,6 +196,44 @@ export default function CreateQuiz() {
     <div className="min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 p-6">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-white font-black text-3xl mb-6">Create Your Quiz</h1>
+
+        {/* My Saved Quizzes */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowSaved(s => !s)}
+            className="flex items-center gap-2 text-yellow-300 font-bold text-sm hover:text-yellow-200 transition"
+          >
+            <span>{showSaved ? '▾' : '▸'}</span>
+            My Saved Quizzes ({savedQuizzes.length})
+          </button>
+
+          {showSaved && (
+            <div className="mt-3 bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+              {savedQuizzes.length === 0 ? (
+                <p className="text-white/40 text-sm text-center py-6">No saved quizzes yet.</p>
+              ) : (
+                savedQuizzes.map(quiz => (
+                  <div key={quiz.id} className="flex items-center justify-between px-4 py-3 border-b border-white/10 last:border-0 hover:bg-white/5 transition">
+                    <div>
+                      <p className="text-white font-semibold">{quiz.name}</p>
+                      <p className="text-white/40 text-xs">{quiz.questions.length} questions</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleLoadQuiz(quiz)}
+                        className="bg-yellow-400/20 text-yellow-300 border border-yellow-400/30 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-400/30 transition"
+                      >Load</button>
+                      <button
+                        onClick={() => handleDeleteQuiz(quiz.id, quiz.name)}
+                        className="bg-red-400/10 text-red-400 border border-red-400/20 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-red-400/20 transition"
+                      >Delete</button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Upload Section */}
         <div
@@ -258,7 +343,25 @@ export default function CreateQuiz() {
         ))}
 
         {error && <p className="text-red-300 text-sm mb-3">{error}</p>}
+        {saveMsg && <p className="text-green-300 text-sm mb-3">✓ {saveMsg}</p>}
 
+        {/* Save Quiz Row */}
+        <div className="flex gap-2 mb-3">
+          <input
+            className="flex-1 bg-white/10 text-white placeholder-white/40 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-yellow-400/50 text-sm"
+            placeholder="Quiz name (optional)..."
+            value={quizName}
+            onChange={e => setQuizName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSaveQuiz()}
+          />
+          <button
+            onClick={handleSaveQuiz}
+            disabled={saving}
+            className="bg-white/15 text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-white/25 transition disabled:opacity-50 whitespace-nowrap"
+          >{saving ? 'Saving...' : '💾 Save Quiz'}</button>
+        </div>
+
+        {/* Create / Add Question Row */}
         <div className="flex gap-3">
           <button
             onClick={() => setQuestions(qs => [...qs, BLANK_QUESTION()])}
