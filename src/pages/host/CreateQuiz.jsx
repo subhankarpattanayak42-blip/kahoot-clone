@@ -14,6 +14,7 @@ const BLANK_QUESTION = () => ({
   options: ['', '', '', ''],
   correctIndex: 0,
   timeLimit: DEFAULT_TIME,
+  noPoints: false,
 })
 
 function parseExcel(arrayBuffer) {
@@ -32,6 +33,7 @@ function parseExcel(arrayBuffer) {
       ],
       correctIndex: Math.max(0, parseInt(row.correct || row.Correct || 1) - 1),
       timeLimit: parseInt(row.time || row.Time || DEFAULT_TIME) || DEFAULT_TIME,
+      noPoints: String(row.points ?? row.Points ?? '1').trim() === '0',
     }))
     .filter(q => q.text && q.options.every(o => o))
 }
@@ -245,6 +247,12 @@ export default function CreateQuiz() {
                 >{t}s</button>
               ))}
               <span className="text-white/40 text-xs ml-1">(default: {DEFAULT_TIME}s)</span>
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <button
+                onClick={() => updateQuestion(qi, 'noPoints', !q.noPoints)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition ${q.noPoints ? 'bg-blue-400/30 text-blue-200 border border-blue-400/50' : 'bg-white/10 text-white/50'}`}
+              >{q.noPoints ? '★ Practice (no points)' : '☆ Mark as practice'}</button>
             </div>
           </div>
         ))}

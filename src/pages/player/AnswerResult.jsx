@@ -21,8 +21,11 @@ export default function AnswerResult({ game, roomCode }) {
       <h2 className={`font-black text-4xl ${isCorrect ? 'text-green-300' : 'text-red-300'}`}>
         {isCorrect ? 'Correct!' : 'Wrong!'}
       </h2>
-      {isCorrect && (
+      {isCorrect && !question.noPoints && (
         <p className="text-yellow-300 font-bold text-2xl">+{pointsEarned} points</p>
+      )}
+      {isCorrect && question.noPoints && (
+        <p className="text-blue-300 font-bold text-xl">Practice question — no points</p>
       )}
 
       <div className="w-full max-w-sm">

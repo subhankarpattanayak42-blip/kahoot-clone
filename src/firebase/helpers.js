@@ -74,10 +74,10 @@ export async function advanceQuestion(roomCode, nextIndex, totalQuestions) {
   }
 }
 
-export async function submitAnswer(roomCode, playerId, questionId, selectedIndex, correctIndex, questionStartedAt, timeLimit) {
+export async function submitAnswer(roomCode, playerId, questionId, selectedIndex, correctIndex, questionStartedAt, timeLimit, noPoints = false) {
   const isCorrect = selectedIndex === correctIndex
   let pointsEarned = 0
-  if (isCorrect) {
+  if (isCorrect && !noPoints) {
     const startMs = questionStartedAt instanceof Timestamp
       ? questionStartedAt.toMillis()
       : Date.now()

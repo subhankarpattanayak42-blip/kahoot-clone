@@ -22,7 +22,8 @@ export default function AnswerQuestion({ game, roomCode }) {
     await submitAnswer(
       roomCode, uid, question.id,
       optionIndex, question.correctIndex,
-      game.questionStartedAt, question.timeLimit
+      game.questionStartedAt, question.timeLimit,
+      question.noPoints === true
     )
   }
 
