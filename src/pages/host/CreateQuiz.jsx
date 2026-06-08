@@ -193,7 +193,7 @@ export default function CreateQuiz() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 p-6 pb-32">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-white font-black text-3xl mb-6">Create Your Quiz</h1>
 
@@ -344,9 +344,11 @@ export default function CreateQuiz() {
 
         {error && <p className="text-red-300 text-sm mb-3">{error}</p>}
         {saveMsg && <p className="text-green-300 text-sm mb-3">✓ {saveMsg}</p>}
+      </div>
 
-        {/* Save Quiz Row */}
-        <div className="flex gap-2 mb-3">
+      {/* Sticky bottom bar — always visible */}
+      <div className="fixed bottom-0 left-0 right-0 bg-purple-900/95 backdrop-blur border-t border-white/10 px-4 py-3 z-50">
+        <div className="max-w-2xl mx-auto flex gap-2">
           <input
             className="flex-1 bg-white/10 text-white placeholder-white/40 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-yellow-400/50 text-sm"
             placeholder="Quiz name (optional)..."
@@ -358,20 +360,16 @@ export default function CreateQuiz() {
             onClick={handleSaveQuiz}
             disabled={saving}
             className="bg-white/15 text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-white/25 transition disabled:opacity-50 whitespace-nowrap"
-          >{saving ? 'Saving...' : '💾 Save Quiz'}</button>
-        </div>
-
-        {/* Create / Add Question Row */}
-        <div className="flex gap-3">
+          >{saving ? '...' : '💾 Save'}</button>
           <button
             onClick={() => setQuestions(qs => [...qs, BLANK_QUESTION()])}
-            className="flex-1 bg-white/20 text-white font-bold py-3 rounded-2xl hover:bg-white/30 transition"
-          >+ Add Question</button>
+            className="bg-white/20 text-white font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-white/30 transition whitespace-nowrap"
+          >+ Add</button>
           <button
             onClick={handleCreate}
             disabled={loading}
-            className="flex-1 bg-yellow-400 text-gray-900 font-bold py-3 rounded-2xl hover:bg-yellow-300 transition disabled:opacity-50"
-          >{loading ? 'Creating...' : `Create Game (${questions.length} Q)`}</button>
+            className="bg-yellow-400 text-gray-900 font-bold text-sm px-4 py-2.5 rounded-xl hover:bg-yellow-300 transition disabled:opacity-50 whitespace-nowrap"
+          >{loading ? '...' : `▶ Play (${questions.length}Q)`}</button>
         </div>
       </div>
     </div>
