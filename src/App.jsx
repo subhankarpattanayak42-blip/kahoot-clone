@@ -7,6 +7,8 @@ import JoinGame from './pages/player/JoinGame'
 import PlayerGame from './pages/player/PlayerGame'
 import Register from './pages/Register'
 import Waitlist from './pages/admin/Waitlist'
+import VibeCodingAdmin from './pages/VibeCodingAdmin'
+import VibeCodingRegister from './pages/VibeCodingRegister'
 
 export default function App() {
   return (
@@ -18,8 +20,10 @@ export default function App() {
           <Route path="/host/:roomCode" element={<HostGame />} />
           <Route path="/play"           element={<JoinGame />} />
           <Route path="/play/:roomCode" element={<PlayerGame />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/register"       element={<Register />} />
+          <Route path="/register/"      element={<VibeCodingRegister />} />
           <Route path="/admin/waitlist" element={<Waitlist />} />
+          <Route path="/admin"          element={<VibeCodingAdmin />} />
         </Routes>
       </BrowserRouter>
     </GameProvider>
