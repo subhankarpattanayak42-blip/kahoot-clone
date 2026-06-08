@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Existing game rooms — keep as-is
+    match /rooms/{roomId} {
+      allow read, write: if true;
+    }
+
+    // Workshop registrations — anyone can write and read (admin page handles auth)
+    match /vibecoding_registrations/{docId} {
+      allow read, create: if true;
+      allow update, delete: if false;
+    }
+
+    // Waitlist — same open write policy
+    match /vibecoding_waitlist/{docId} {
+      allow read, create: if true;
+      allow update, delete: if false;
+    }
+
+    // Game rooms
+    match /games/{roomCode} {
+      allow read, write: if true;
+    }
+    match /games/{roomCode}/players/{playerId} {
+      allow read, write: if true;
+    }
+  }
+}
