@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePlayers } from '../../hooks/usePlayers'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../../supabase'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { db } from '../../firebase/config'
 import Leaderboard from '../../components/Leaderboard'
 
 export default function HostGameOver({ game, roomCode }) {
@@ -18,37 +19,26 @@ export default function HostGameOver({ game, roomCode }) {
 
   async function saveResults() {
     const totalQuestions = game.questions?.length ?? 0
-    const rows = players.map(p => {
-      const answers = p.answers || {}
-      const correctCount = Object.values(answers).filter(a => a.isCorrect).length
-      return {
-        room_code: roomCode,
-        player_nickname: p.nickname || p.id,
-        player_email: p.email || null,
-        score: p.score ?? 0,
-        correct_count: correctCount,
-        total_questions: totalQuestions,
-        answers,
-      }
-    })
-
     try {
-      const { error } = await supabase.from('quiz_results').insert(rows)
-      if (error) {
-        // Table might not exist yet — user needs to run the migration SQL
-        console.warn('Supabase quiz_results insert failed:', error.message)
-        if (error.message.includes('relation') && error.message.includes('does not exist')) {
-          setSaveStatus('⚠️ Quiz results table not created yet — run the SQL migration from scripts/create-quiz-results-table.sql')
-        } else {
-          setSaveStatus(`⚠️ Save failed: ${error.message}`)
-        }
-      } else {
-        setSaveStatus(`✅ ${rows.length} player results saved`)
-        console.log(`Saved ${rows.length} quiz results to Supabase`)
-      }
+      const resultsRef = collection(db, 'quiz_results')
+      await Promise.all(players.map(p => {
+        const answers = p.answers || {}
+        const correctCount = Object.values(answers).filter(a => a.isCorrect).length
+        return addDoc(resultsRef, {
+          roomCode,
+          playerNickname: p.nickname || p.id,
+          playerEmail: p.email || null,
+          score: p.score ?? 0,
+          correctCount,
+          totalQuestions,
+          answers,
+          savedAt: serverTimestamp(),
+        })
+      }))
+      setSaveStatus(`✅ ${players.length} player results saved`)
     } catch (e) {
-      console.warn('Supabase save error:', e.message)
-      setSaveStatus(`⚠️ Save error: ${e.message}`)
+      console.warn('Firestore save error:', e.message)
+      setSaveStatus(`⚠️ Save failed: ${e.message}`)
     }
   }
 
