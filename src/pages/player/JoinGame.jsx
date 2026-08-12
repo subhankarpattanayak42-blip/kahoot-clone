@@ -1,17 +1,38 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { joinGame } from '../../firebase/helpers'
 import { useAuth } from '../../hooks/useAuth'
 import { useGameContext } from '../../context/GameContext'
 
 export default function JoinGame() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { uid } = useAuth()
   const { setRoomCode, setRole, setNickname } = useGameContext()
-  const [code, setCode] = useState('')
-  const [name, setName] = useState('')
+
+  // Read from URL query params so a shareable link bypasses manual entry
+  const [code, setCode] = useState(() =>
+    (searchParams.get('code') || '').toUpperCase().trim()
+  )
+  const [name, setName] = useState(() => {
+    const urlName = searchParams.get('name')
+    const urlEmail = searchParams.get('email')
+    if (urlName) return urlName.trim()
+    if (urlEmail) return urlEmail.trim().split('@')[0] // use email local-part as nickname
+    return ''
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const autoTriggered = useRef(false)
+
+  // Auto-submit when URL params are present and auth is ready
+  useEffect(() => {
+    if (autoTriggered.current) return
+    if (!code || !name) return
+    if (!uid) return
+    autoTriggered.current = true
+    handleJoin()
+  }, [code, name, uid])
 
   async function handleJoin() {
     if (!code.trim() || !name.trim()) return setError('Please enter room code and nickname.')
@@ -26,6 +47,21 @@ export default function JoinGame() {
       setError(e.message)
       setLoading(false)
     }
+  }
+
+  // If auto-joining, show a clean loading state instead of the form
+  if (autoTriggered.current) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 flex flex-col items-center justify-center gap-6 p-6">
+        <div className="text-6xl animate-bounce">⏳</div>
+        <h1 className="text-white font-black text-3xl text-center">
+          Joining game <span className="text-yellow-300">{code}</span>...
+        </h1>
+        <p className="text-white/60 text-xl">
+          You're in as <span className="text-yellow-300 font-bold">{name}</span>
+        </p>
+      </div>
+    )
   }
 
   return (
