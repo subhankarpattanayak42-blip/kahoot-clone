@@ -81,7 +81,7 @@ export async function submitAnswer(roomCode, playerId, questionId, selectedIndex
     const startMs = questionStartedAt instanceof Timestamp
       ? questionStartedAt.toMillis()
       : Date.now()
-    const elapsedFraction = Math.min((Date.now() - startMs) / (timeLimit * 1000), 1)
+    const elapsedFraction = Math.min(Math.max((Date.now() - startMs) / (timeLimit * 1000), 0), 1)
     pointsEarned = Math.round(1000 * (1 - 0.5 * elapsedFraction))
   }
 
