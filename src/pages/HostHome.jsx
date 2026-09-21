@@ -7,7 +7,7 @@ function TechSambadFooter() {
       <p className="text-white/50 text-xs">
         © {new Date().getFullYear()}{' '}
         <a
-          href="https://techsambad.in"
+          href="https://techsambad.com"
           target="_blank"
           rel="noopener noreferrer"
           className="text-yellow-400 hover:text-yellow-300 font-semibold transition-colors"
